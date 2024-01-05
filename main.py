@@ -25,11 +25,11 @@ DB_TOKEN = os.environ.get('TURSO_API_TOKEN')
 
 
 def query_insert_tursodb(id_date, title, link, summary):
-    print('Trying to insert to Turso DB ...')
     client = libsql_client.create_client_sync(
         url="libsql://upwork-rss-feeder-dmitrimahayana.turso.io",
         auth_token=DB_TOKEN
     )
+
     sql = "insert into rss_upwork values (:id_date, :title, :link, :summary)", {"id_date": id_date, "title": title,
                                                                                 "link": link, "summary": summary}
     with client:
@@ -119,8 +119,8 @@ def read_rss(skill, page: int = 20):
         counter = counter + 1
 
 
-if __name__ == "__main__":
-    read_rss("python")
+# if __name__ == "__main__":
+    # read_rss("python")
 #     read_rss("machinelearning")
 #     read_rss("datascraping")
 #     read_rss("airflow")
