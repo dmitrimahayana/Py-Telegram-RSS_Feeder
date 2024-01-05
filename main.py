@@ -14,7 +14,9 @@ import feedparser
 import pytz
 import libsql_client
 import re
-# import psycopg2
+import sys
+import psycopg2
+from config_local import postgres_config
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')  # the one you saved in previous step
 CHANNEL_ID = os.environ.get('BOT_CHANNEL_ID')  # don't forget to add this
@@ -32,6 +34,19 @@ def query_insert_tursodb(id_date, title, link, summary):
                                                                                 "link": link, "summary": summary}
     with client:
         result_set = client.execute(sql)
+
+
+def query_insert_postgres(id_date, title, link, summary):
+    conn = psycopg2.connect(database=postgres_config["database"],
+                            host=postgres_config["host"],
+                            user=postgres_config["user"],
+                            password=postgres_config["password"],
+                            port=postgres_config["port"])
+
+    with conn.cursor() as cur:
+        sql = "INSERT INTO rss_upwork(id_date, title, link, summary) VALUES (%s, %s, %s, '');"
+        cur.execute(sql, (id_date, title, link))
+        conn.commit()
 
 
 def send_message(message):
@@ -56,7 +71,15 @@ def read_rss(skill, page: int = 20):
         url = f"https://www.upwork.com/ab/feed/jobs/rss?location=Americas%2CEurope%2COceania&verified_payment_only=1&q=machine+learning&sort=recency&paging=0%3B{page}&api_params=1&securityToken=d76b00a86ffa60baeb01da154db76acbc3e3fb340eb668f28c222bb46639c8703ab081313822496c9034327bdea763a7d925b795c8689537c032172bc7d66703&userUid=1183197118515154944&orgUid=1183197118523543553"
 
     feed = feedparser.parse(url)
-    # conn = psycopg2.connect(DB_URL)
+
+    # Check if the current hour is between 8 PM and 8 AM
+    # current_hour = datetime.datetime.now().hour
+    # if 20 <= current_hour or current_hour < 8:
+    #     # Main task
+    #     print(f"Running {skill} task...")
+    # else:
+    #     print(f"Outside of the time range. Exiting {skill} task...")
+    #     sys.exit()
 
     counter = 0
     for entry in feed.entries:
@@ -83,27 +106,17 @@ def read_rss(skill, page: int = 20):
                    f'\nSkill: {skill}'
                    f'\nPublished: {formatted_date}'
                    f'\nLink: {link}')
-        # Query turso db
+        # Query database
         try:
             # query_insert_tursodb(id_date, title, link, "")
-            # send_message(message)
+            query_insert_postgres(id_date, title, link, "")
+            send_message(message)
             print(message)
         except Exception as e:
+            print("No message for Telegram Bot due to duplicate")
             pass
-        # with conn.cursor() as cur:
-        #     try:
-        #         sql = "INSERT INTO rss_upwork(id_date, title, link, summary) VALUES (%s, %s, %s, '');"
-        #         cur.execute(sql, (id_date, title, link))
-        #         conn.commit()
-        #         send_message(message)
-        #     except psycopg2.errors.UniqueViolation:
-        #         print("Duplicate entry detected. The record already exists in the database.")
-        #     except psycopg2.Error as e:
-        #         print(f"An error occurred: {e}")
-        #     except Exception as e:
-        #         print(f"An unexpected error occurred: {e}")
-        # data.append(dict_feed)
-        # counter = counter + 1
+        data.append(dict_feed)
+        counter = counter + 1
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
 lambda_layer
 my_virtual_env
 my_deployment_package.zip
+config_local.py
