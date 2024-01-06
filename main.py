@@ -33,7 +33,7 @@ def query_insert_tursodb(id_date, title, link, summary):
     sql = "insert into rss_upwork values (:id_date, :title, :link, :summary)", {"id_date": id_date, "title": title,
                                                                                 "link": link, "summary": summary}
     with client:
-        result_set = client.execute(sql)
+        client.execute(sql)
 
 
 def query_insert_postgres(id_date, title, link, summary):
