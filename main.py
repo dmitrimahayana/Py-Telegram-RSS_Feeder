@@ -97,9 +97,9 @@ def read_rss(skill, page: int = 20):
         gmt_plus_7 = pytz.timezone('Etc/GMT-7')
         converted_date_gmt7 = date_object.astimezone(gmt_plus_7)
         formatted_date = converted_date_gmt7.strftime('%Y-%m-%d %H:%M:%S')
-        # format telegram bot message
+        # Format telegram bot message
         id_date = formatted_date + '_' + skill
-        title = dict_feed['title'].replace("'", "")
+        title = dict_feed['title'].replace("'", "").replace("&amp;", " ").replace("  ", " ")
         title = re.sub(r'[^a-zA-Z0-9\s]+', '', title)
         link = dict_feed['link']
         message = (f'Job Title: {title}'
@@ -119,9 +119,9 @@ def read_rss(skill, page: int = 20):
         counter = counter + 1
 
 
-# if __name__ == "__main__":
-    # read_rss("python")
-#     read_rss("machinelearning")
+if __name__ == "__main__":
+    read_rss("python")
+    read_rss("machinelearning")
 #     read_rss("datascraping")
 #     read_rss("airflow")
 #     read_rss("spark")
