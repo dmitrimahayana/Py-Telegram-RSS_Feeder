@@ -13,14 +13,15 @@ import datetime
 import feedparser
 import pytz
 import libsql_client
+import time
 import re
 import sys
 import psycopg2
-from config_local import postgres_config
+import socket
+from config_local import postgres_config, local_pc_name
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')  # the one you saved in previous step
 CHANNEL_ID = os.environ.get('BOT_CHANNEL_ID')  # don't forget to add this
-# DB_URL = os.environ.get('COCKROACHDB_URL')
 DB_TOKEN = os.environ.get('TURSO_API_TOKEN')
 
 
@@ -37,11 +38,16 @@ def query_insert_tursodb(id_date, title, link, summary):
 
 
 def query_insert_postgres(id_date, title, link, summary):
-    conn = psycopg2.connect(database=postgres_config["database"],
-                            host=postgres_config["host"],
+    host = postgres_config["host"]
+    if socket.gethostname() != local_pc_name:
+        host = "postgresdb"
+        print(socket.gethostname(), host)
+
+    conn = psycopg2.connect(host=host,
+                            port=postgres_config["port"],
+                            database=postgres_config["database"],
                             user=postgres_config["user"],
-                            password=postgres_config["password"],
-                            port=postgres_config["port"])
+                            password=postgres_config["password"],)
 
     with conn.cursor() as cur:
         sql = "INSERT INTO rss_upwork(id_date, title, link, summary) VALUES (%s, %s, %s, '');"
@@ -50,7 +56,10 @@ def query_insert_postgres(id_date, title, link, summary):
 
 
 def send_message(message):
-    requests.get(f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHANNEL_ID}&text={message}')
+    response = requests.get(f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHANNEL_ID}&text={message}')
+    print("Telegram API response code:", response.status_code, response.reason)
+    if response.status_code == 200:
+        print(message)
 
 
 def read_rss(skill, page: int = 20):
@@ -108,12 +117,11 @@ def read_rss(skill, page: int = 20):
                    f'\nLink: {link}')
         # Query database
         try:
-            # query_insert_tursodb(id_date, title, link, "")
             query_insert_postgres(id_date, title, link, "")
             send_message(message)
-            print(message)
+            time.sleep(1)
         except Exception as e:
-            print("No message for Telegram Bot due to duplicate")
+            print(f"No message for Telegram Bot due to {e}")
             pass
         data.append(dict_feed)
         counter = counter + 1
