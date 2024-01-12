@@ -63,7 +63,8 @@ def send_message(message):
         print(message)
 
 
-def read_rss():
+def read_rss(page=20):
+    # Dict
     data = []
 
     # Read mapping file
@@ -72,18 +73,18 @@ def read_rss():
 
     # Iterate mapping data
     for index, row in df_list_rss.iterrows():
-        url = row["URL"]
+        url = str(row["URL"]).replace("paging=0%3B10", f"paging=0%3B{page}")
         skill = row["Skill"]
         feed = feedparser.parse(url)
 
-        # Check if the current hour is between 8 PM and 8 AM
-        current_hour = datetime.datetime.now().hour
-        if 20 <= current_hour or current_hour < 8:
-            # Main task
-            print(f"Running {skill} task...")
-        else:
-            print(f"Outside of the time range. Exiting {skill} task...")
-            sys.exit()
+        # # Check if the current hour is between 8 PM and 8 AM
+        # current_hour = datetime.datetime.now().hour
+        # if 20 <= current_hour or current_hour < 8:
+        #     # Main task
+        #     print(f"Running {skill} task...")
+        # else:
+        #     print(f"Outside of the time range. Exiting {skill} task...")
+        #     sys.exit()
 
         # with sync_playwright() as playwright:
         #     browser, page = open_browser(playwright)
@@ -136,4 +137,4 @@ def read_rss():
 
 
 if __name__ == "__main__":
-    read_rss()
+    read_rss(20)
