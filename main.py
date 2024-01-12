@@ -63,7 +63,7 @@ def send_message(message):
         print(message)
 
 
-def read_rss(page=20):
+def read_rss(page=10):
     # Dict
     data = []
 
@@ -137,4 +137,4 @@ def read_rss(page=20):
 
 
 if __name__ == "__main__":
-    read_rss(20)
+    read_rss()
