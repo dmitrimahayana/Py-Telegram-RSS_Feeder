@@ -27,19 +27,19 @@ CHANNEL_ID = os.environ.get('BOT_CHANNEL_ID')  # don't forget to add this
 DB_TOKEN = os.environ.get('TURSO_API_TOKEN')
 
 
-# def query_insert_tursodb(id_date, title, link, summary):
+# def query_insert_tursodb(id, title, link, summary):
 #     client = libsql_client.create_client_sync(
 #         url="libsql://upwork-rss-feeder-dmitrimahayana.turso.io",
 #         auth_token=DB_TOKEN
 #     )
 #
-#     sql = "insert into rss_upwork values (:id_date, :title, :link, :summary)", {"id_date": id_date, "title": title,
+#     sql = "insert into rss_upwork values (:id, :title, :link, :summary)", {"id": id, "title": title,
 #                                                                                 "link": link, "summary": summary}
 #     with client:
 #         client.execute(sql)
 
 
-def query_insert_postgres(id_date, title, link, summary):
+def query_insert_postgres(id, title, link, summary):
     host = postgres_config["host"]
     if socket.gethostname() != local_pc_name:
         host = "postgresdb"
@@ -51,8 +51,8 @@ def query_insert_postgres(id_date, title, link, summary):
                             password=postgres_config["password"], )
 
     with conn.cursor() as cur:
-        sql = "INSERT INTO rss_upwork(id_date, title, link, summary) VALUES (%s, %s, %s, '');"
-        cur.execute(sql, (id_date, title, link))
+        sql = "INSERT INTO rss_upwork(id, title, link, summary) VALUES (%s, %s, %s, '');"
+        cur.execute(sql, (id, title, link))
         conn.commit()
 
 
@@ -105,14 +105,14 @@ def read_rss(page=10):
             converted_date_gmt7 = date_object.astimezone(gmt_plus_7)
             formatted_date = converted_date_gmt7.strftime('%Y-%m-%d %H:%M:%S')
             # Format telegram bot message
-            id_date = formatted_date + '_' + skill
+            id = dict_feed['link']
             title = dict_feed['title'].replace("'", "").replace("&amp;", " ").replace("  ", " ")
             title = re.sub(r'[^a-zA-Z0-9\s]+', '', title)
             link = dict_feed['link']
             # Query database
             try:
                 # Insert data to postgres
-                query_insert_postgres(id_date, title, link, "")  # Insert to postgres db
+                query_insert_postgres(id, title, link, "")  # Insert to postgres db
                 # Extract job details
                 # jobs_posted, hire_rate, budget, status = scrape_upwork(page, link)  # scrape job info with playwright
                 message = (f'Job Title: {title}'
