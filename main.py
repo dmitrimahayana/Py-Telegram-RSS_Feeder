@@ -8,10 +8,9 @@ Tutorial Create BOT Telegram
 6. Get Channel/Chat ID
 """
 import os
-import datetime
 import requests
+import datetime
 import feedparser
-import libsql_client
 import psycopg2
 import pytz
 import time
@@ -19,24 +18,14 @@ import re
 import sys
 import socket
 import pandas as pd
+from dotenv import load_dotenv
 from config_local import postgres_config, local_pc_name
-from extract_project_info import *
+# from extract_project_info import *
+
+load_dotenv()  # take environment variables from .env.`
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')  # the one you saved in previous step
-CHANNEL_ID = os.environ.get('BOT_CHANNEL_ID')  # don't forget to add this
-DB_TOKEN = os.environ.get('TURSO_API_TOKEN')
-
-
-# def query_insert_tursodb(id, title, link, summary):
-#     client = libsql_client.create_client_sync(
-#         url="libsql://upwork-rss-feeder-dmitrimahayana.turso.io",
-#         auth_token=DB_TOKEN
-#     )
-#
-#     sql = "insert into rss_upwork values (:id, :title, :link, :summary)", {"id": id, "title": title,
-#                                                                                 "link": link, "summary": summary}
-#     with client:
-#         client.execute(sql)
+BOT_CHANNEL_ID = os.environ.get('BOT_CHANNEL_ID')  # don't forget to add this
 
 
 def query_insert_postgres(id, title, link, summary):
@@ -57,10 +46,13 @@ def query_insert_postgres(id, title, link, summary):
 
 
 def send_message(message):
-    response = requests.get(f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={CHANNEL_ID}&text={message}')
+    response = requests.get(
+        f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={BOT_CHANNEL_ID}&text={message}')
     print("Telegram API response code:", response.status_code, response.reason)
     if response.status_code == 200:
         print(message)
+    else:
+        print(f"BOT_TOKEN: {BOT_TOKEN} CHANNEL_ID:{BOT_CHANNEL_ID}")
 
 
 def read_rss(page=10):
